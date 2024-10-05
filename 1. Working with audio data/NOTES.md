@@ -1,4 +1,4 @@
-# Introduction to audio data
+# I. Introduction to audio data
 
 By nature, **a sound wave is a continuous signal.**
 - **Problem:** digital devices which expect finite arrays.
@@ -76,3 +76,6 @@ Also note that librosa returns the audio as floating-point values already, and t
 
 
 ### 4. The frequency spectrum
+
+
+# II. Load and explore an audio dataset
