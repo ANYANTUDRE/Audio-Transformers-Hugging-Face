@@ -1,9 +1,10 @@
 # I. Introduction to audio data
 
 By nature, **a sound wave is a continuous signal.**
-- **Problem:** digital devices which expect finite arrays.
-- **Solution:** convert it into a series of discrete values (digital representation).
-- **How?** 1. The analog signal is first captured by a microphone, which converts the sound waves into an electrical signal.
+- **Problem:** digital devices expect finite arrays.
+- **Solution:** convert signal into a series of discrete values (digital representation).
+- **How?**   
+           1. The analog signal is first captured by a microphone, which converts the sound waves into an electrical signal.  
            2. The electrical signal is then digitized by an Analog-to-Digital Converter to get the digital representation through **sampling**.
        
 The different audio file formats (.wav, .flac, .mp3) mainly differ in how they **compress the digital representation** of the audio signal.
@@ -15,7 +16,7 @@ The sampled waveform is **discrete**.
 
 **Sampling rate** (sampling frequency): number of samples taken in one second in hertz (Hz).
 
-**Nyquist limit** (half the sampling rate): highest frequency that can be captured from the signal.
+**Nyquist limit** (half the sampling rate): highest frequency that can be captured from the signal.   
 The audible frequencies in human speech are below **8 kHz** and therefore sampling speech at 16 kHz is sufficient.
 On the other hand, sampling audio at too low a sampling rate will result in information loss.
 
