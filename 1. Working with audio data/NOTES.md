@@ -80,3 +80,57 @@ Also note that librosa returns the audio as floating-point values already, and t
 
 
 # II. Load and explore an audio dataset
+
+We will use the **🤗 Datasets* library to work with audio datasets.
+
+Installation:
+```python
+pip install datasets[audio]
+```
+
+The load_dataset() function:
+```python
+from datasets import load_dataset
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+print(minds)
+
+example = minds[0]
+print(example)
+```
+Output:
+
+
+the audio column contains several features:
+- path: the path to the audio file (*.wav in this case).
+- array: The decoded audio data, represented as a 1-dimensional NumPy array.
+- sampling_rate. The sampling rate of the audio file (8,000 Hz in this example).
+
+Removing unnecessary features:
+```python
+columns_to_remove = ["lang_id", "english_transcription"]
+minds = minds.remove_columns(columns_to_remove)
+minds
+```
+Output:
+
+
+Visualizing the waveform for the first example:
+```python
+import librosa
+import matplotlib.pyplot as plt
+import librosa.display
+
+array = example["audio"]["array"]
+sampling_rate = example["audio"]["sampling_rate"]
+
+plt.figure().set_figwidth(12)
+librosa.display.waveshow(array, sr=sampling_rate)
+```
+
+Output:
+
+
+
+# Preprocessing an audio dataset
+
+
