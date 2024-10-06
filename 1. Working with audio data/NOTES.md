@@ -133,4 +133,150 @@ Output:
 
 # Preprocessing an audio dataset
 
+Some general preprocessing steps:
+- Resampling the audio data
+- Filtering the dataset
+- Converting audio data to model’s expected input
+
+### 1. Resampling the audio data
+
+Audios sampling rate is not always the value expected by a model you plan to train, or use for inference. If there’s a discrepancy between the sampling rates, you can resample the audio to the model’s expected sampling rate.
+
+Most of the available pretrained models have been pretrained on audio datasets at a sampling rate of 16 kHz.
+
+🤗 Datasets’ cast_column method:
+```python
+from datasets import Audio
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+minds[0]
+```
+You may notice that the array values are now also different. This is because we’ve now got twice the number of amplitude values for every one that we had before.
+
+### 2. Filtering the dataset
+You may need to filter the data based on some criteria. One of the common cases involves limiting the audio examples to a certain duration. For instance, we might want to filter out any examples longer than 20s to prevent out-of-memory errors when training a model.
+
+🤗 Datasets’ filter method:
+```python
+MAX_DURATION_IN_SECONDS = 20.0
+
+def is_audio_length_in_range(input_length):
+    return input_length < MAX_DURATION_IN_SECONDS
+
+# use librosa to get example's duration from the audio file
+new_column = [librosa.get_duration(path=x) for x in minds["path"]]
+minds = minds.add_column("duration", new_column)
+
+# use 🤗 Datasets' `filter` method to apply the filtering function
+minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])
+
+# remove the temporary helper column
+minds = minds.remove_columns(["duration"])
+minds
+```
+Output:
+
+### 3. Pre-processing audio data
+
+The raw audio data comes as an array of sample values but pre-trained models expect it to be converted into input features depending on the model.
+
+Transformers offer a feature extractor class that can convert raw audio data into the input features the model expects.
+
+Example of Whisper’s feature extractor:
+           - First, the Whisper feature extractor pads/truncates a batch of audio examples such that all examples have an input length of 30s.  There is no need for an attention mask.
+           - The second operation that the Whisper feature extractor performs is converting the padded audio arrays to log-mel spectrograms. As you recall, these spectrograms describe how the frequencies of a signal change over time, expressed on the mel scale and measured in decibels (the log part) to make the frequencies and amplitudes more representative of human hearing.
+
+```python
+from transformers import WhisperFeatureExtractor
+
+feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
+
+# function to pre-process a single audio example
+def prepare_dataset(example):
+    audio = example["audio"]
+    features = feature_extractor(
+        audio["array"], sampling_rate=audio["sampling_rate"], padding=True
+    )
+    return features
+
+# apply the data preparation function to all of our training examples
+minds = minds.map(prepare_dataset)
+minds
+```
+Output:
+
+
+As easy as that, we now have log-mel spectrograms as input_features in the dataset.
+
+Let’s visualize it for one of the examples in the minds dataset:
+
+```python
+import numpy as np
+
+example = minds[0]
+input_features = example["input_features"]
+
+plt.figure().set_figwidth(12)
+librosa.display.specshow(
+    np.asarray(input_features[0]),
+    x_axis="time",
+    y_axis="mel",
+    sr=feature_extractor.sampling_rate,
+    hop_length=feature_extractor.hop_length,
+)
+plt.colorbar()
+```
+Output:
+
+
+The model’s feature extractor class takes care of transforming raw audio data to the format that the model expects. However, many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer model-specific tokenizers to process the text inputs.
+
+You can load the feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via a so-called processor. To make things even simpler, use AutoProcessor to load a model’s feature extractor and processor from a checkpoint, like this:
+
+```python
+from transformers import AutoProcessor
+
+processor = AutoProcessor.from_pretrained("openai/whisper-small")
+```
+
+
+# Streaming audio data
+
+One of the biggest challenges faced with audio datasets is their **sheer size**.
+
+So what happens when we want to train on a larger split?
+Do we need to fork out and buy additional storage? 
+Or is there a way we can train on these datasets with no disk space constraints?
+
+🤗 Datasets comes to the rescue by offering the streaming mode. Streaming allows us to load the data progressively as we iterate over the dataset. Rather than downloading the whole dataset at once, we load the dataset one example at a time. We iterate over the dataset, loading and preparing examples on the fly when they are needed. This way, we only ever load the examples that we’re using, and not the ones that we’re not! Once we’re done with an example sample, we continue iterating over the dataset and load the next one.
+
+Streaming mode has three primary advantages over downloading the entire dataset at once:
+- Disk space
+- Download and processing time
+- Easy experimentation
+
+There is one caveat to streaming mode. 
+- When downloading a full dataset without streaming, both the raw data and processed data are saved locally to disk and this allows reusability.
+- With streaming mode, the data is not downloaded to disk. Thus, neither the downloaded nor pre-processed data are cached.
+
+How can you enable streaming mode? Easy!
+```python
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+
+You can no longer access individual samples using Python indexing. Instead, you have to iterate over the dataset:
+```python
+next(iter(gigaspeech["train"]))
+```
+Output:
+
+
+If you’d like to preview several examples from a large dataset, use the take() to get the first n elements. Let’s grab the first two examples in the gigaspeech dataset:
+```python
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+Output:
+
+
+
 
