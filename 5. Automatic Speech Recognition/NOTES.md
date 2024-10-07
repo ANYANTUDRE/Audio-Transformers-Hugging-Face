@@ -269,6 +269,54 @@ Whisper is a strong pre-trained model for speech recognition and translation. Co
 While the Whisper model performs extremely well on many high-resource languages, it has lower transcription and translation accuracy on low-resource languages, i.e. those with less readily available training data.
 
 
+# II. Choosing a dataset
+
+As with any machine learning problem, our model is only as good as the data that we train it on. Speech recognition datasets vary considerably in how they are curated and the domains that they cover. To pick the right dataset, we need to match our criteria with the features that a dataset offers.
+
+### Features of speech datasets
+
+##### 1. Number of hours
+Simply put, the number of training hours indicates how large the dataset is. It’s analogous to the number of training examples in an NLP dataset. However, bigger datasets aren’t necessarily better. If we want a model that generalises well, we want a diverse dataset with lots of different speakers, domains and speaking styles.
+
+##### 2. Domain
+The domain entails where the data was sourced from, whether it be audiobooks, podcasts, YouTube or financial meetings. Each domain has a different distribution of data. For example, audiobooks are recorded in high-quality studio conditions (with no background noise) and text that is taken from written literature. Whereas for YouTube, the audio likely contains more background noise and a more informal style of speech.
+
+We need to match our domain to the conditions we anticipate at inference time. For instance, if we train our model on audiobooks, we can’t expect it to perform well in noisy environments.
+
+
+##### 3. Speaking style
+
+The speaking style falls into one of two categories:
+
+- Narrated: read from a script (tends to be spoken articulately and without any errors)
+- Spontaneous: un-scripted, conversational speech (a more colloquial style of speech, with the inclusion of repetitions, hesitations and false-starts)
+
+##### 4. Transcription style
+
+The transcription style refers to whether the target text has punctuation, casing or both. If we want a system to generate fully formatted text that could be used for a publication or meeting transcription, we require training data with punctuation and casing. If we just require the spoken words in an un-formatted structure, neither punctuation nor casing are necessary. In this case, we can either pick a dataset without punctuation or casing, or pick one that has punctuation and casing and then subsequently remove them from the target text through pre-processing.
+
+### A summary of datasets on the Hub
+
+
+
+
+
+### Common Voice 13
+
+
+
+# III. Evaluation metrics for ASR
+
+
+
+
+
+
+
+
+
+
+
 
 
 
