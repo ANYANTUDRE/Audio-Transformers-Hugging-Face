@@ -165,25 +165,145 @@ Bark is a transformer-based text-to-speech model proposed by Suno AI in suno-ai/
 Unlike SpeechT5, Bark generates raw speech waveforms directly, eliminating the need for a separate vocoder during inference – it’s already integrated. This efficiency is achieved through the utilization of Encodec, which serves as both a codec and a compression tool.
 
 
+With Encodec, you can compress audio into a lightweight format to reduce memory usage and subsequently decompress it to restore the original audio. 
+
+This compression process is facilitated by 8 codebooks, each consisting of integer vectors. Think of these codebooks as representations or embeddings of the audio in integer form. It’s important to note that each successive codebook improves the quality of the audio reconstruction from the previous codebooks. As codebooks are integer vectors, they can be learned by transformer models, which are very efficient in this task. This is what Bark was specifically trained to do.
+
+To be more specific, Bark is made of 4 main models:
+- **BarkSemanticModel (also referred to as the ‘text’ model):** a causal auto-regressive transformer model that takes as input tokenized text, and predicts semantic text tokens that capture the meaning of the text.
+- **BarkCoarseModel (also referred to as the ‘coarse acoustics’ model):** a causal autoregressive transformer, that takes as input the results of the BarkSemanticModel model. It aims at predicting the first two audio codebooks necessary for EnCodec.
+- **BarkFineModel (the ‘fine acoustics’ model)**, this time a non-causal autoencoder transformer, which iteratively predicts the last codebooks based on the sum of the previous codebooks embeddings.
+- having predicted all the codebook channels from the EncodecModel, Bark uses it to decode the output audio array.
+
+It should be noted that each of the first three modules can support conditional speaker embeddings to condition the output sound according to specific predefined voice.
+
+Bark is an highly-controllable text-to-speech model, meaning you can use with various settings, as we are going to see.
+
+Before everything, load the model and its processor.
+
+The processor role here is two-sides:
+- It is used to tokenize the input text, i.e. to cut it into small pieces that the model can understand.
+- It stores speaker embeddings, i.e voice presets that can condition the generation.
+
+```python
+from transformers import BarkModel, BarkProcessor
+
+model = BarkModel.from_pretrained("suno/bark-small")
+processor = BarkProcessor.from_pretrained("suno/bark-small")
+```
+Bark is very versatile and can generate audio conditioned by a speaker embeddings library which can be loaded via the processor.
+
+```python
+# add a speaker embedding
+inputs = processor("This is a test!", voice_preset="v2/en_speaker_3")
+
+speech_output = model.generate(**inputs).cpu().numpy()
+```
+It can also generate ready-to-use multilingual speeches, such as French and Chinese. You can find a list of supported languages here. Unlike MMS, discussed below, it is not necessary to specify the language used, but simply adapt the input text to the corresponding language.
+
+```python
+# try it in French, let's also add a French speaker embedding
+inputs = processor("C'est un test!", voice_preset="v2/fr_speaker_1")
+
+speech_output = model.generate(**inputs).cpu().numpy()
+```
+The model can also generate non-verbal communications such as laughing, sighing and crying. You just have to modify the input text with corresponding cues such as [clears throat], [laughter], or ....
+
+```python
+inputs = processor(
+    "[clears throat] This is a test ... and I just took a long pause.",
+    voice_preset="v2/fr_speaker_1",
+)
+
+speech_output = model.generate(**inputs).cpu().numpy()
+```
+Bark can even generate music. You can help by adding ♪ musical notes ♪ around your words.
+
+```python
+inputs = processor(
+    "♪ In the mighty jungle, I'm trying to generate barks.",
+)
+
+speech_output = model.generate(**inputs).cpu().numpy()
+```
+
+In addition to all these features, Bark supports batch processing, which means you can process several text entries at the same time, at the expense of more intensive computation. On some hardware, such as GPUs, batching enables faster overall generation, which means it can be faster to generate samples all at once than to generate them one by one.
+
+Let’s try generating a few examples:
+
+```python
+input_list = [
+    "[clears throat] Hello uh ..., my dog is cute [laughter]",
+    "Let's try generating speech, with Bark, a text-to-speech model",
+    "♪ In the jungle, the mighty jungle, the lion barks tonight ♪",
+]
+
+# also add a speaker embedding
+inputs = processor(input_list, voice_preset="v2/en_speaker_3")
+
+speech_output = model.generate(**inputs).cpu().numpy()
+```
+Let’s listen to the outputs one by one.
+
+First one:
+
+```python
+from IPython.display import Audio
+
+sampling_rate = model.generation_config.sample_rate
+Audio(speech_output[0], rate=sampling_rate)
+```
+Second one:
+```python
+Audio(speech_output[1], rate=sampling_rate)
+```
+Third one:
+```python
+Audio(speech_output[2], rate=sampling_rate)
+```
+
+### Massive Multilingual Speech (MMS)
+
+What if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can synthesize speech in over 1,100 languages.
+
+MMS for text-to-speech is based on VITS Kim et al., 2021, which is one of the state-of-the-art TTS approaches.
 
 
+VITS is a speech generation network that converts text into raw speech waveforms. It works like a conditional variational auto-encoder, estimating audio features from the input text. First, acoustic features, represented as spectrograms, are generated. The waveform is then decoded using transposed convolutional layers adapted from HiFi-GAN. During inference, the text encodings are upsampled and transformed into waveforms using the flow module and HiFi-GAN decoder. Like Bark, there’s no need for a vocoder, as waveforms are generated directly.
 
 
+Let’s give MMS a go, and see how we can synthesize speech in a language other than English, e.g. German. First, we’ll load the model checkpoint and the tokenizer for the correct language:
+
+```python
+from transformers import VitsModel, VitsTokenizer
+
+# use VitsModel and VitsTokenizer since MMS for text-to-speech is based on the VITS model
+model = VitsModel.from_pretrained("facebook/mms-tts-deu")
+tokenizer = VitsTokenizer.from_pretrained("facebook/mms-tts-deu")
+
+#  pick an example text in German
+text_example = (
+    "Ich bin Schnappi das kleine Krokodil, komm aus Ägypten das liegt direkt am Nil."
+)
+
+# To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model
+import torch
+
+inputs = tokenizer(text_example, return_tensors="pt")
+input_ids = inputs["input_ids"]
 
 
+with torch.no_grad():
+    outputs = model(input_ids)
 
+speech = outputs["waveform"]
 
+# Let’s listen to it:
+from IPython.display import Audio
 
+Audio(speech, rate=16000)
 
-
-
-
-
-
-
-
-
-
+```
 
 
 
