@@ -49,7 +49,7 @@ translate(sample["audio"].copy())
 
 
 ### Text-to-speech
-- **Model we'll use:** [SpeechT5](https://huggingface.co/microsoft/speecht5_tts) TTS model for
+- **Model we'll use:** [SpeechT5](https://huggingface.co/microsoft/speecht5_tts)
 - **Goal:** English text synthesis  
 
 ```python
@@ -106,7 +106,7 @@ sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"]
 Audio(synthesised_speech, rate=sampling_rate)
 ```
 
-- 3. **Gradio demo:**
+- **3. Gradio demo:**
 ```python
 import gradio as gr
 
@@ -133,7 +133,7 @@ demo.launch(debug=True)
 ```
 
 
-# Creating a voice assistant
+# II. Creating a voice assistant
 We’ll piece together three models to build an **end-to-end voice assistant called Marvin 🤖** who responds to a particular ‘wake word’, then listens out for a spoken query, and finally responds with a spoken answer.
 
 ![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/voice_assistant.png)
