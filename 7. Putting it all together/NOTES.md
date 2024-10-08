@@ -1,5 +1,4 @@
 # I. Speech-to-speech translation
-
 **Speech-to-speech translation (STST or S2ST)** involves translating speech from one langauge into speech in a different language.
 
 ![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/s2st.png)
@@ -24,7 +23,6 @@ Problems:
 - **Advantages:** 
   - multilingual
   - reasonable inference speed
-
 
 ```python
 import torch
@@ -97,7 +95,6 @@ import numpy as np
 target_dtype = np.int16
 max_range = np.iinfo(target_dtype).max
 
-
 def speech_to_speech_translation(audio):
     translated_text = translate(audio)
     synthesised_speech = synthesise(translated_text)
@@ -109,7 +106,7 @@ sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"]
 Audio(synthesised_speech, rate=sampling_rate)
 ```
 
-Gradio demo:
+**Gradio demo:**
 ```python
 import gradio as gr
 
