@@ -2,7 +2,7 @@
 
 **Speech-to-speech translation (STST or S2ST)** involves translating speech from one langauge into speech in a different language.
 
-![]()
+![][https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/s2st.png]
 
 STST holds applications in the field of **multilingual communication** with two possible approaches:
 - **Two stage cascaded approach**: speech translation (ST) + text-to-speech (TTS).  
@@ -10,7 +10,7 @@ Advantages:
   - straightforward, effective,
   - very data and compute efficient
 
-![]()
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/s2st_cascaded.png)
 
 - **Three stage approach**: ASR + MT + TTS.  
 Problems:
@@ -19,10 +19,12 @@ Problems:
 
 
 ### Speech translation
-Model we'll use: [Whisper Base - 74M]()   
-Advantages: 
+- **Model we'll use:** [Whisper Base - 74M](https://huggingface.co/openai/whisper-base)
+- **Goal:** translate from any of the 96 languages to English
+- **Advantages:** 
   - multilingual
   - reasonable inference speed
+
 
 ```python
 import torch
@@ -47,9 +49,11 @@ def translate(audio):
 translate(sample["audio"].copy())
 ```
 
-### Text-to-speech
 
-We’ll use the pre-trained SpeechT5 TTS model for English TTS.
+### Text-to-speech
+- **Model we'll use:** [SpeechT5](https://huggingface.co/microsoft/speecht5_tts) TTS model for
+- **Goal:** English text synthesis  
+
 ```python
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
 
@@ -79,9 +83,13 @@ speech = synthesise("Hey there! This is a test!")
 Audio(speech, rate=16000)
 ```
 
-### Creating a STST demo
 
-Let’s do a quick sanity check to make sure we can concatenate the two models, putting an audio sample in and getting an audio sample out.
+### Creating a STST demo
+**Steps to follow:**
+- **Quick sanity check:** to make sure we can concatenate the two models (or rather the two functions), putting an audio sample in and getting an audio sample out.
+- **Convert the synthesised speech to an int16 array** (format expected by Gradio):
+  - normalise the audio array by the dynamic range of the target dtype (int16)
+  - convert from the default NumPy dtype (float64) to the target dtype (int16).
 
 ```python
 import numpy as np
