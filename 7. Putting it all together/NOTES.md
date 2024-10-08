@@ -1,27 +1,28 @@
 # I. Speech-to-speech translation
 
-**Speech-to-speech translation (STST or S2ST)** is a relatively new spoken language processing task involving translating speech from one langauge into speech in a different language.
+**Speech-to-speech translation (STST or S2ST)** involves translating speech from one langauge into speech in a different language.
 
 ![]()
 
-STST holds applications in the field of multilingual communication.
-2 possible approaches:
-- **Two stage cascaded approach to STST**: speech translation (ST) + text-to-speech (TTS).
-  Advantages:
-    - straightforward, it results in very effective STST systems.
-    - very data and compute efficient
+STST holds applications in the field of **multilingual communication** with two possible approaches:
+- **Two stage cascaded approach**: speech translation (ST) + text-to-speech (TTS).  
+Advantages:
+  - straightforward, effective,
+  - very data and compute efficient
 
 ![]()
 
-- **Three stage approach**: ASR + MT + TTS.
+- **Three stage approach**: ASR + MT + TTS.  
 Problems:
   - error propagation through the pipeline
   - increase in latency
 
-### Speech translation
 
-We’ll use the [Whisper Base - 74M]() model for our speech translation system, since it’s capable of translating from over 96 languages to English.
-Advantage: get reasonable inference speed
+### Speech translation
+Model we'll use: [Whisper Base - 74M]()   
+Advantages: 
+  - multilingual
+  - reasonable inference speed
 
 ```python
 import torch
