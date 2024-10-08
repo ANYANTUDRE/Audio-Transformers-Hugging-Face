@@ -2,7 +2,7 @@
 
 **Speech-to-speech translation (STST or S2ST)** involves translating speech from one langauge into speech in a different language.
 
-![][https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/s2st.png]
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/s2st.png)
 
 STST holds applications in the field of **multilingual communication** with two possible approaches:
 - **Two stage cascaded approach**: speech translation (ST) + text-to-speech (TTS).  
