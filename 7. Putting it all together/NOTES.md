@@ -84,8 +84,8 @@ Audio(speech, rate=16000)
 
 ### Creating a STST demo
 **Steps to follow:**
-- **Quick sanity check:** to make sure we can concatenate the two models (or rather the two functions), putting an audio sample in and getting an audio sample out.
-- **Convert the synthesised speech to an int16 array** (format expected by Gradio):
+- **1. Quick sanity check:** to make sure we can concatenate the two models (or rather the two functions), putting an audio sample in and getting an audio sample out.
+- **2. Convert the synthesised speech to an int16 array** (format expected by Gradio):
   - normalise the audio array by the dynamic range of the target dtype (int16)
   - convert from the default NumPy dtype (float64) to the target dtype (int16).
 
@@ -106,7 +106,7 @@ sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"]
 Audio(synthesised_speech, rate=sampling_rate)
 ```
 
-**Gradio demo:**
+- 3. **Gradio demo:**
 ```python
 import gradio as gr
 
@@ -134,43 +134,31 @@ demo.launch(debug=True)
 
 
 # Creating a voice assistant
+We’ll piece together three models to build an **end-to-end voice assistant called Marvin 🤖** who responds to a particular ‘wake word’, then listens out for a spoken query, and finally responds with a spoken answer.
 
-We’ll piece together three models to build an end-to-end voice assistant called Marvin 🤖. Like Amazon’s Alexa or Apple’s Siri, Marvin is a virtual voice assistant who responds to a particular ‘wake word’, then listens out for a spoken query, and finally responds with a spoken answer.
-
-We can break down the voice assistant pipeline into four stages, each of which requires a standalone model:
-
-![]()
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/voice_assistant.png)
 
 ### Pipeline
 
 ##### 1. Wake word detection
-
 Voice assistants are constantly listening to the audio inputs coming through your device’s microphone, however they only boot into action when a particular ‘wake word’ or ‘trigger word’ is spoken.
-
-The wake word detection task is handled by a small on-device audio classification model. Only when the wake word is detected is the larger speech recognition model launched, and afterwards it is shut down again.
-
+The wake word detection task is handled by a small on-device audio classification model. 
 
 ##### 2. Speech transcription
-
-The next stage in the pipeline is transcribing the spoken query to text. In practice, transferring audio files from your local device to the Cloud is slow due to the large nature of audio files, so it’s more efficient to transcribe them directly using an automatic speech recognition (ASR) model on-device rather than using a model in the Cloud. The on-device model might be smaller and thus less accurate than one hosted in the Cloud, but the faster inference speed makes it worthwhile since we can run speech recognition in near real-time, our spoken audio utterance being transcribed as we say it.
-
+Transcribing spoken queries directly on-device using an ASR model is more efficient than sending large audio files to the Cloud. 
+While on-device models may be less accurate, they provide faster inference, allowing real-time transcription as the audio is spoken.
 
 ##### 3. Language model query
-Now that we know what the user asked, we need to generate a response! The best candidate models for this task are large language models (LLMs), since they are effectively able to understand the semantics of the text query and generate a suitable response.
-
-Since our text query is small (just a few text tokens), and language models large (many billions of parameters), the most efficient way of running LLM inference is to send our text query from our device to an LLM running in the Cloud, generate a text response, and return the response back to the device.
+To generate a response to the user's query, we efficiently send the small text query to a large language model (LLM) in the Cloud, which generates and returns a suitable response.
 
 ##### 4. Synthesise speech
-Finally, we’ll use a text-to-speech (TTS) model to synthesise the text response as spoken speech. This is done on-device, but you could feasibly run a TTS model in the Cloud, generating the audio output and transferring it back to the device.
+We will use a TTS model to synthesize the text response into spoken speech on-device, although it can also be run in the Cloud to generate and transfer the audio output.
 
 
 ### Wake word detection
-The first stage in the voice assistant pipeline is detecting whether the wake word was spoken, and we need to find ourselves an appropriate pre-trained model for this task! You’ll remember from the section on pre-trained models for audio classification that Speech Commands is a dataset of spoken words designed to evaluate audio classification models on 15+ simple command words like "up", "down", "yes" and "no", as well as a "silence" label to classify no speech. 
-
-
-We can take an audio classification model pre-trained on the Speech Commands dataset and pick one of these simple command words to be our chosen wake word. Out of the 15+ possible command words, if the model predicts our chosen wake word with the highest probability, we can be fairly certain that the wake word has been said.
-
-We’ll use  Audio Spectrogram Transformer checkpoint again for our wake word detection task.
+The first step in the voice assistant pipeline is detecting whether a wake word has been spoken. 
+To achieve this, a pre-trained audio classification model is needed. The Speech Commands dataset, which contains spoken words like "up," "down," "yes," "no," and "silence," is suitable for evaluating such models. 
+By selecting one of these words as the wake word and using a model pre-trained on this dataset, the system can identify the wake word with high probability. The Audio Spectrogram Transformer checkpoint will be used for this wake word detection task.
 
 ```python
 from transformers import pipeline
