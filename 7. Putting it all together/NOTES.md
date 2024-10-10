@@ -141,18 +141,22 @@ We’ll piece together three models to build an **end-to-end voice assistant cal
 ### Pipeline
 
 ##### 1. Wake word detection
-Voice assistants are constantly listening to the audio inputs coming through your device’s microphone, however they only boot into action when a particular ‘wake word’ or ‘trigger word’ is spoken.
-The wake word detection task is handled by a small on-device audio classification model. 
+- **constantly listening** to device’s microphone,
+- only boot into action when a particular **‘wake word’ or ‘trigger word’ is spoken**,
+- Handled by a **small on-device audio classification model**.
 
 ##### 2. Speech transcription
-Transcribing spoken queries directly on-device using an ASR model is more efficient than sending large audio files to the Cloud. 
-While on-device models may be less accurate, they provide faster inference, allowing real-time transcription as the audio is spoken.
+- transcribing the spoken query to text,
+- directly **on-device using an ASR model** is more efficient (may be less accurate but faster inference),
+- allows **real-time transcription** as the audio is spoken.
 
 ##### 3. Language model query
-To generate a response to the user's query, we efficiently send the small text query to a large language model (LLM) in the Cloud, which generates and returns a suitable response.
+- send the user's text query query to a **LLM** in the Cloud,
+- the LLM generates and returns a suitable response.
 
 ##### 4. Synthesise speech
-We will use a TTS model to synthesize the text response into spoken speech on-device, although it can also be run in the Cloud to generate and transfer the audio output.
+- Use a TTS model to synthesize the text response into spoken speech **on-device**,
+- although it can also be run **in the Cloud** to generate and transfer the audio output.
 
 
 ### Wake word detection
