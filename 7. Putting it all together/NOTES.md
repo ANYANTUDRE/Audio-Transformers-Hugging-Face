@@ -365,12 +365,14 @@ And with that, we have our end-to-end voice assistant complete, made using the �
 
 
 ### Generalise to anything 🪄
-
 So far, we’ve seen how we can generate speech outputs with our voice assistant Marvin. To finish, we’ll demonstrate how we can generalise these speech outputs to text, audio and image.
 
-We’ll use Transformers Agents to build our assistant. Transformers Agents provides a natural language API on top of the 🤗 Transformers and Diffusers libraries, interpreting a natural language input using an LLM with carefully crafted prompts, and using a set of curated tools to provide multimodal outputs.
+- **Model we'll use:** [ **Transformers Agents - Bigcode Starcoder model**]()
+- **Goal:**  provide multimodal outputs.
+- **Advantages:**
+  - provides a natural language API on top of the 🤗 Transformers and Diffusers libraries, interpreting a natural language input using an LLM with carefully crafted prompts, and using a set of curated tools to provide multimodal outputs.
 
-Let’s go ahead and instantiate an agent. There are three LLMs available for Transformers Agents, two of which are open-source and free on the Hugging Face Hub. The third is a model from OpenAI that requires an OpenAI API key. We’ll use the free Bigcode Starcoder model in this example, but you can also try either of the other LLMs available:
+There are **three LLMs available for Transformers Agents**, two of which are open-source and free on the Hugging Face Hub.
 
 ```python
 from transformers import HfAgent
@@ -379,7 +381,7 @@ agent = HfAgent(
     url_endpoint="https://api-inference.huggingface.co/models/bigcode/starcoder"
 )
 ```
-To use the agent, we simply have to call agent.run with our text prompt. As an example, we’ll get it to generate an image of a cat 🐈 (that hopefully looks a bit better than this emoji):
+To use the agent, we simply have to call `agent.run` with our text prompt. As an example, we’ll get it to generate an image of a cat 🐈 (that hopefully looks a bit better than this emoji):
 
 ```python
 agent.run("Generate an image of a cat")
