@@ -183,15 +183,17 @@ classifier.model.config.id2label
 classifier.model.config.id2label[27]
 ```
 
-- **ffmpeg_microphone_live**: helper function from 🤗 Transformers function that is constantly listening to our device’s microphone input.
-- **Description:** forwards small chunks of audio of specified length `chunk_length_s` to the model to be classified. To ensure that we get smooth boundaries across chunks of audio, we run a sliding window across our audio with stride `chunk_length_s / 6`. 
+- **ffmpeg_microphone_live**: helper function from 🤗 that is constantly listening to our device’s microphone input.   
+  - it forwards **small chunks of audio** of specified length `chunk_length_s` to the model.
+  - we run a **sliding window with stride `chunk_length_s / 6`** to get smooth boundaries across chunks of audio)
+  - **minimal temporary audio input length `stream_chunk_s`** that allows to not have to wait for the entire first chunk to be recorded before we start inferring. It is forwarded to the model before `chunk_length_s` time is reached.
+  - returns a generator object, yielding a sequence of audio chunks
+  - the generator is passed directly to the pipeline, which in turn returns a sequence of output predictions, one for each chunk of audio input.  
 
-- **minimal temporary audio input length `stream_chunk_s`:** allows to not have to wait for the entire first chunk to be recorded before we start inferring. It is forwarded to the model before `chunk_length_s` time is reached.
+We can inspect the class label probabilities for each audio chunk, and stop our wake word detection loop when we detect that the wake word has been spoken.
 
-The function ffmpeg_microphone_live returns a generator object, yielding a sequence of audio chunks that can each be passed to the classification model to make a prediction. We can pass this generator directly to the pipeline, which in turn returns a sequence of output predictions, one for each chunk of audio input. We can inspect the class label probabilities for each audio chunk, and stop our wake word detection loop when we detect that the wake word has been spoken.
-
-
-We’ll use a very simple criteria for classifying whether our wake word was spoken: if the class label with the highest probability was our wake word, and this probability exceeds a threshold prob_threshold, we declare that the wake word as having been spoken. Using a probability threshold to gate our classifier this way ensures that the wake word is not erroneously predicted if the audio input is noise, which is typically when the model is very uncertain and all the class label probabilities low. You might want to tune this probability threshold, or explore more sophisticated means for the wake word decision through an entropy (or uncertainty) based metric.
+- **Criteria for classifying wake word**: if the class label with the highest probability was our wake word, and this probability exceeds a threshold `prob_threshold`, we declare that the wake word as having been spoken.  
+Using a probability threshold to gate our classifier this way ensures that the wake word is not erroneously predicted if the audio input is noise, which is typically when the model is very uncertain and all the class label probabilities low. You might want to tune this probability threshold, or explore more sophisticated means for the wake word decision through an entropy (or uncertainty) based metric.
 
  
  ```python
