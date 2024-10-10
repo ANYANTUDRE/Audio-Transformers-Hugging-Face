@@ -236,15 +236,10 @@ Awesome! As we expect, the model generates garbage predictions for the first few
 
 
 ### Speech transcription
-We’ll use the Whisper Base English for our speech transcription system.
-
-We’ll use a trick to get near real-time transcription by being clever with how we forward our audio inputs to the model. 
-
-```python
-transcriber = pipeline(
-    "automatic-speech-recognition", model="openai/whisper-base.en", device=device
-)
-```
+- **Model we'll use:** [Whisper Base English]()
+- **Goal:** transcription
+- **Advantages:** 
+  - we’ll use a trick to get near real-time transcription by being clever with how we forward our audio inputs to the model. 
 
 We can now define a function to record our microphone input and transcribe the corresponding text. With the ffmpeg_microphone_live helper function, we can control how ‘real-time’ our speech recognition model is. Using a smaller stream_chunk_s lends itself to more real-time speech recognition, since we divide our input audio into smaller chunks and transcribe them on the fly. However, this comes at the expense of poorer accuracy, since there’s less context for the model to infer from.
 
@@ -252,7 +247,9 @@ As we’re transcribing the speech, we also need to have an idea of when the use
 
 ```python
 import sys
-
+transcriber = pipeline(
+    "automatic-speech-recognition", model="openai/whisper-base.en", device=device
+)
 
 def transcribe(chunk_length_s=5.0, stream_chunk_s=1.0):
     sampling_rate = transcriber.feature_extractor.sampling_rate
@@ -277,18 +274,19 @@ transcribe()
 
 ```
 Start speaking...
- Hey, this is a test with the whisper model.
+Hey, this is a test with the whisper model.
 ```
 
 Nice! You can adjust the maximum audio length chunk_length_s based on how fast or slow you speak (increase it if you felt like you didn’t have enough time to speak, decrease it if you were left waiting at the end), and the stream_chunk_s for the real-time factor. Just pass these as arguments to the transcribe function.
 
+
 ### Language model query
-Now that we have our spoken query transcribed, we want to generate a meaningful response. To do this, we’ll use an LLM hosted on the Cloud. Specifically, we’ll pick an LLM on the Hugging Face Hub and use the Inference API to easily query the model.
-
-We’ll use the tiiuae/falcon-7b-instruct checkpoint by TII, a 7B parameter decoder-only LM fine-tuned on a mixture of chat and instruction datasets. You can use any LLM on the Hugging Face Hub that has the “Hosted inference API” enabled, just look out for the widget on the right-side of the model card:
-
-
-The Inference API allows us to send a HTTP request from our local machine to the LLM hosted on the Hub, and returns the response as a json file. All we need to provide is our Hugging Face Hub token (which we retrieve directly from our Hugging Face Hub folder) and the model id of the LLM we wish to query:
+- **Model we'll use:** [tiiuae/falcon-7b-instruct 7B]() by TII
+- **Goal:** generate a meaningful response
+- **Advantages:**
+  - decoder-only LM fine-tuned on a mixture of chat and instruction datasets
+  - hosted on the Cloud (HF Hub)
+  - use the Inference API to easily query the model: allows us to send a HTTP request from our local machine to the LLM hosted on the Hub, and returns the response as a json file.
 
 ```python
 from huggingface_hub import HfFolder
@@ -306,11 +304,12 @@ def query(text, model_id="tiiuae/falcon-7b-instruct"):
 
 query("What does Hugging Face do?")
 ```
-You’ll notice just how fast inference is using the Inference API - we only have to send a small number of text tokens from our local machine to the hosted model, so the communication cost is very low. The LLM is hosted on GPU accelerators, so inference runs very quickly. Finally, the generated response is transferred back from the model to our local machine, again with low communication overhead.
+**Note:** You’ll notice just how fast inference is using the Inference API - we only have to send a small number of text tokens from our local machine to the hosted model, so the communication cost is very low. The LLM is hosted on GPU accelerators, so inference runs very quickly. Finally, the generated response is transferred back from the model to our local machine, again with low communication overhead.
 
 
 ### Synthesise speech
-And now we’re ready to get the final spoken output! Once again, we’ll use the Microsoft SpeechT5 TTS model for English TTS, but you can use any TTS model of your choice. Let’s go ahead and load the processor and model:
+- **Model we'll use:** [Microsoft SpeechT5]()
+- **Goal:**  get the final spoken output
 
 ```python
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
@@ -344,9 +343,9 @@ audio = synthesise(
 Audio(audio, rate=16000)
 ```
 
-### Marvin 🤖
 
-Now that we’ve defined a function for each of the four stages of the voice assistant pipeline, all that’s left to do is piece them together to get our end-to-end voice assistant. We’ll simply concatenate the four stages, starting with wake word detection (launch_fn), speech transcription, querying the LLM, and finally speech synthesis.
+### Marvin 🤖
+Let's piece pipeline components together to get our end-to-end voice assistant. We’ll simply concatenate the four stages, starting with wake word detection (launch_fn), speech transcription, querying the LLM, and finally speech synthesis.
 
 ```python
 launch_fn()
@@ -357,7 +356,12 @@ audio = synthesise(response)
 Audio(audio, rate=16000, autoplay=True)
 ```
 
-And with that, we have our end-to-end voice assistant complete, made using the 🤗 audio tools you’ve learnt throughout this course, with a sprinkling of LLM magic at the end. There are several extensions that we could make to improve the voice assistant. Firstly, the audio classification model classifies 35 different labels. We could use a smaller, more lightweight binary classification model that only predicts whether the wake word was spoken or not. Secondly, we pre-load all the models ahead and keep them running on our device. If we wanted to save power, we would only load each model at the time it was required, and subsequently un-load them afterwards. Thirdly, we’re missing a voice activity detection model in our transcription function, transcribing for a fixed amount of time, which in some cases is too long, and in others too short.
+And with that, we have our end-to-end voice assistant complete, made using the 🤗 audio tools you’ve learnt throughout this course, with a sprinkling of LLM magic at the end. 
+
+- **Extensions for improvements:**
+  - Firstly, the audio classification model classifies 35 different labels. We could use a smaller, more lightweight binary classification model that only predicts whether the wake word was spoken or not.
+  - Secondly, we pre-load all the models ahead and keep them running on our device. If we wanted to save power, we would only load each model at the time it was required, and subsequently un-load them afterwards.
+  - Thirdly, we’re missing a voice activity detection model in our transcription function, transcribing for a fixed amount of time, which in some cases is too long, and in others too short.
 
 
 ### Generalise to anything 🪄
