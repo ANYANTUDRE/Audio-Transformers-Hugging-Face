@@ -98,7 +98,7 @@ max_range = np.iinfo(target_dtype).max
 def speech_to_speech_translation(audio):
     translated_text = translate(audio)
     synthesised_speech = synthesise(translated_text)
-    synthesised_speech = (synthesised_speech.numpy() * max_range).astype(np.int16)
+    synthesised_speech = (synthesised_speech.numpy() * max_range).astype(target_dtype)
     return 16000, synthesised_speech
 
 sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"])
