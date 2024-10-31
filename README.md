@@ -1,5 +1,5 @@
 <div align="center">
-  <h1> Audio Transformers Course - Hugging Face 🤗</h1>
+  <h1> Audio Transformers Course (summarized) - Hugging Face 🤗</h1>
   <p align="center">
     🕸 <a href="https://www.linkedin.com/in/anyantudre">LinkedIn</a> • 
     📙 <a href="https://www.kaggle.com/waalbannyantudre">Kaggle</a> • 
