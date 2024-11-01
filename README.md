@@ -1,5 +1,5 @@
 <div align="center">
-  <h1> Audio Transformers Course (summarized) - Hugging Face 🤗</h1>
+  <h1> Audio Transformers Course (key takeaways) - Hugging Face 🤗</h1>
   <p align="center">
     🕸 <a href="https://www.linkedin.com/in/anyantudre">LinkedIn</a> • 
     📙 <a href="https://www.kaggle.com/waalbannyantudre">Kaggle</a> • 
@@ -10,7 +10,7 @@
 <br/>
 
 
-This repository contains an abridged version or, rather let's say, my **key takeaways** from the [**Hugging Face Audio course**](https://huggingface.co/learn/audio-course). 
+This repository contains an summarized version or, rather let's say, my **key takeaways** from the [**Hugging Face Audio course**](https://huggingface.co/learn/audio-course). 
 
 The aim is to have a few **notes from the course and the code snippets** that seem most important to keep handy in each section. **Think of it as a sort of "cheat sheet" to quickly explore the most important concepts.** If you've already taken the original or similar course, or have some basic knowledge of Audio Transformers, you'll undoubtly find this useful as a quick refresher on the various concepts.
 
