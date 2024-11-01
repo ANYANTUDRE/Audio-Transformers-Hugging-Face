@@ -1,6 +1,6 @@
 # I. Audio classification with a pipeline
 
-Audio classification involves **assigning one or more labels to an audio recording** based on its content.
+**Audio classification involves assigning one or more labels to an audio recording based on its content.**
 The labels could correspond to different sound categories, such as music, speech, or noise, or more specific categories like bird song or car engine sounds.
 
 To classify an audio recording into a set of classes, we can use the audio-classification pipeline from 🤗 Transformers.
@@ -35,7 +35,7 @@ In this case, you can **fine-tune a pre-trained model to “calibrate”** it to
 
 # II. Automatic Speech Recognition (ASR) with a pipeline
 
-ASR is a task that involves transcribing speech audio recording into text.
+**ASR is a task that involves transcribing speech audio recording into text.**
 
 In this section, we’ll use the automatic-speech-recognition pipeline to transcribe an audio recording of a person asking a question about paying a bill using the same MINDS-14 dataset as before.
 
@@ -50,27 +50,25 @@ example = minds[0]
 asr(example["audio"]["array"])
 ```
 
-The model seems to have done a pretty good job at transcribing the audio! It only got one word wrong (“card”) compared to the original transcription
-
-By default, this pipeline uses a model trained for automatic speech recognition for English language, which is fine in this example. If you’d like to try transcribing other subsets of MINDS-14 in different language, you can find a pre-trained ASR model and pass it’s name as the model argument to the pipeline.
+By default, this pipeline uses a model trained for ASR for English language, which is fine in this example. If you’d like to try transcribing other subsets of MINDS-14 in different language, you can find a pre-trained ASR model and pass it’s name as the model argument to the pipeline.
 
 When working on solving your own task, starting with a simple pipeline like the ones we’ve shown in this unit is a valuable tool that offers several benefits:
-- a pre-trained model may exist that already solves your task really well, saving you plenty of time
-- pipeline() takes care of all the pre/post-processing for you
-- if the result isn’t ideal, this still gives you a quick baseline for future fine-tuning
-- once you fine-tune a model on your custom data and share it on Hub, the whole community will be able to use it quickly and effortlessly via the pipeline() method making AI more accessible.
+- a **pre-trained model** may exist that already solves your task really well, saving you plenty of time
+- `pipeline()` takes care of all the **pre/post-processing** for you,
+- if the result isn’t ideal, this still gives you a **quick baseline for future fine-tuning**
+- once you **fine-tune a model on your custom data** and share it on Hub, the whole community will be able to use it quickly and effortlessly via the pipeline() method making AI more accessible.
 
 
 # III. Audio generation with a pipeline
 
-Audio generation encompasses a versatile set of tasks that involve producing an audio output.   
-The tasks that we will look into here are **speech generation** (aka “text-to-speech”) and music generation. 
+**Audio generation encompasses a versatile set of tasks that involve producing an audio output.**   
+The tasks that we will look into here are **speech generation** (aka “text-to-speech”) and **music generation**. 
 
-- In text-to-speech, a model transforms a piece of text into lifelike spoken language sound, opening the door to applications such as virtual assistants, accessibility tools for the visually impaired, and personalized audiobooks.
-- On the other hand, music generation can enable creative expression, and finds its use mostly in entertainment and game development industries.
+- In text-to-speech, a model transforms a piece of **text into lifelike spoken language sound**, opening the door to applications such as virtual assistants, accessibility tools for the visually impaired, and personalized audiobooks.  
+- On the other hand, **music generation can enable creative expression**, and finds its use mostly in entertainment and game development industries.
 
 In 🤗 Transformers, you’ll find a pipeline that covers both of these tasks.    
-This pipeline is called "text-to-audio", but for convenience, it also has a "text-to-speech" alias. 
+This pipeline is called **"text-to-audio"**, but for convenience, it also has a **"text-to-speech"** alias. 
 
 
 ### 1. Generating speech
