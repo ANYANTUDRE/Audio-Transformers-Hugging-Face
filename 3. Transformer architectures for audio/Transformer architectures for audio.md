@@ -1,8 +1,9 @@
 # I. Refresher on transformer models
 
 ### 1. How does a transformer work?
+The original transformer model was designed to translate written text from one language into another.   
+Its architecture looked like this:
 
-The original transformer model was designed to translate written text from one language into another. Its architecture looked like this:
 ![]()
 
 On the left is the encoder and on the right is the decoder.
