@@ -54,74 +54,15 @@ As a quick rule of thumb: **every -6 dB is a halving of the amplitude**, and any
 
 **Waveform** (time domain representation of sound):  plots the sample values over time and illustrates the changes in the sound’s amplitude.
 
-Plotting the waveform for an audio signal with `librosa`:
+The plot shows the amplitude of the signal on the y-axis and time along the x-axis.  In other words, each point corresponds to a single sample value that was taken when this sound was sampled. Also note that librosa returns the audio as floating-point values already, and that the amplitude values are indeed within the [-1.0, 1.0] range.
 
-```python
-import librosa
-
-# The example ("trumpet") is loaded as a tuple of audio time series, and sampling rate. 
-array, sampling_rate = librosa.load(librosa.ex("trumpet"))
-
-# Let’s take a look at this sound’s waveform by using librosa’s `waveshow()` function:
-import matplotlib.pyplot as plt
-import librosa.display
-
-plt.figure().set_figwidth(12)
-librosa.display.waveshow(array, sr=sampling_rate)
-```
-
-This plots the amplitude of the signal on the y-axis and time along the x-axis. 
-
-In other words, each point corresponds to a single sample value that was taken when this sound was sampled. 
-Also note that librosa returns the audio as floating-point values already, and that the amplitude values are indeed within the [-1.0, 1.0] range.
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/waveform_unit1.png)
 
 
-- **Mel Spectrogram**: A variation of the spectrogram suited for speech processing and machine learning.
-- **Human Auditory Model**: Mel scale approximates how humans perceive sound, emphasizing lower frequencies as sensitivity decreases logarithmically at higher frequencies.
-- **Creation Process**:
-  - **STFT**: Short-Time Fourier Transform splits audio into short segments.
-  - **Mel Filterbank**: Converts frequencies to mel scale using filters that mimic human hearing.
-- **Plotting with Librosa**: `librosa.feature.melspectrogram()` and `librosa.power_to_db()` functions help generate and convert to decibel scale.
-  - **Key Parameters**: `n_mels` (number of mel bands, commonly 40 or 80) and `fmax` (highest frequency in Hz).
-- **Log-Mel Spectrogram**: Expresses mel frequency strengths in decibels, often used for machine learning.
-- **Variability in Mel Scales**: Common mel scales include "htk" and "slaney," with variations in using power or amplitude spectrograms.
-- **Lossy Transformation**: Mel spectrograms discard some frequency information, making it hard to reconstruct the waveform directly. Vocoder models like HiFi-GAN help convert mel spectrograms back to audio.
-- **Applications**: Effective for speech recognition, speaker identification, and music genre classification, as it captures perceptually meaningful audio features.
-
-
-
-
-### 1. **Frequency Spectrum (Frequency Domain Representation)**
+### 4. **Frequency Spectrum (Frequency Domain Representation)**
    - **Purpose**: Visualizes the individual frequencies in an audio signal and their strengths.
    - **Method**: Uses the Discrete Fourier Transform (DFT) to calculate frequency components. For efficiency, Fast Fourier Transform (FFT) is commonly applied.
    - **Example**: Calculating DFT with `numpy`’s `rfft()` over the first 4096 samples, typically using a window function to reduce edge effects.
-```python
-import numpy as np
-
-dft_input = array[:4096]
-
-# Apply a Hanning window to smooth the signal region.
-window = np.hanning(len(dft_input))
-windowed_input = dft_input * window
-
-# Calculate DFT yielding complex numbers (real and imaginary components).
-dft = np.fft.rfft(windowed_input)
-
-# get the amplitude spectrum in decibels
-amplitude = np.abs(dft)
-amplitude_db = librosa.amplitude_to_db(amplitude, ref=np.max)
-
-# get the frequency bins
-frequency = librosa.fft_frequencies(sr=sampling_rate, n_fft=len(dft_input))
-
-plt.figure().set_figwidth(12)
-plt.plot(frequency, amplitude_db)
-plt.xlabel("Frequency (Hz)")
-plt.ylabel("Amplitude (dB)")
-plt.xscale("log")
-```
-![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/spectrum_plot.png)
-
    - **Interpretation**: Peaks in the spectrum show harmonics of a note, with quieter higher harmonics; amplitude in dB and frequency (Hz) are often shown on a logarithmic scale.
              - **Amplitude Spectrum**: Obtained from the magnitude of DFT results; provides strength of frequencies.
              - **Phase Spectrum**: Angle of real and imaginary components; often unused in ML.
@@ -130,44 +71,29 @@ plt.xscale("log")
            - **FFT vs. DFT**: The Fast Fourier Transform (FFT) is an efficient way to compute the DFT, and the terms are often used interchangeably.
            - **Waveform vs. Spectrum**: Both representations contain the same information; waveforms show amplitude over time, while spectrums show frequency strengths at a fixed moment.
 
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/spectrum_plot.png)
 
-### 2. **Spectrogram**
+
+### 5. **Spectrogram**
    - **Purpose**: Shows how frequencies change over time, offering a fuller picture than the frequency spectrum alone.
    - **Method**: Created by applying Short-Time Fourier Transform (STFT), which divides the audio into small, overlapping segments, each transformed into a frequency spectrum.
-
-```python
-import numpy as np
-
-D = librosa.stft(array)
-S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
-
-plt.figure().set_figwidth(12)
-librosa.display.specshow(S_db, x_axis="time", y_axis="hz")
-plt.colorbar()
-```
-![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/spectrogram_plot.png)
-
    - **Interpretation**: X-axis represents time, Y-axis shows frequency, and color intensity indicates amplitude in dB.
    - **Application**: Useful for identifying instrument sounds, speech patterns, and audio structures over time.
    - **Inversion**: Spectrograms can be converted back to waveforms if phase data is available. Without phase data, algorithms like **Griffin-Lim or vocoder models** reconstruct the waveform.
 
-### 3. **Mel Spectrogram**
-   - **Purpose**: Similar to a spectrogram but uses a mel scale to align with human auditory perception, focusing more on lower frequencies.
-   - **Method**: The STFT is applied, followed by a mel filterbank that compresses higher frequencies into perceptual bands. Often expressed in decibels (log-mel spectrogram).
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/spectrogram_plot.png)
+
+
+### 6. **Mel Spectrogram**
+   - **Purpose**: Similar to a spectrogram but uses a **mel scale** to align with human auditory perception, focusing more on lower frequencies as sensitivity decreases logarithmically at higher frequencies.
+   - **Method**: The STFT is applied, followed by a mel filterbank that compresses higher frequencies into perceptual bands (converts frequencies to mel scale using filters that mimic human hearing). Often expressed in decibels (log-mel spectrogram).
    - **Example**: Created using `librosa.melspectrogram()`, with parameters like `n_mels` for mel bands and `fmax` for the frequency ceiling.
+   - **Variability in Mel Scales**: Common mel scales include "htk" and "slaney," with variations in using power or amplitude spectrograms.
+   - **Use Case**: Common in speech recognition, speaker ID, and music analysis because it emphasizes perceptually meaningful features.
+   - **Limitations**: Mel spectrograms discard some frequency information, making it hard to reconstruct the waveform directly. Vocoder models like HiFi-GAN help convert mel spectrograms back to audio.
 
-```python
-S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
-S_dB = librosa.power_to_db(S, ref=np.max)
-
-plt.figure().set_figwidth(12)
-librosa.display.specshow(S_dB, x_axis="time", y_axis="mel", sr=sampling_rate, fmax=8000)
-plt.colorbar()
-```
 ![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/mel-spectrogram.png)
 
-   - **Use Case**: Common in speech recognition, speaker ID, and music analysis because it emphasizes perceptually meaningful features.
-   - **Limitations**: Reconstructing waveforms from mel spectrograms is challenging due to lost information; vocoder models are often needed for this purpose.
 
 ##### Key Differences Spectrum vs Spectrogram vs Mel Spectrogram
    - **Frequency Spectrum**: Snapshot of frequencies at a fixed point.
@@ -175,17 +101,11 @@ plt.colorbar()
    - **Mel Spectrogram**: Frequency information adapted for human perception, important for machine learning tasks. 
 
 
-
 # II. Load and explore an audio dataset
 
 We will use the **🤗 Datasets** library to work with audio datasets.
 
-Installation:
-```python
-pip install datasets[audio]
-```
-
-The load_dataset() function:
+- The load_dataset() function:
 ```python
 from datasets import load_dataset
 minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
@@ -194,38 +114,11 @@ print(minds)
 example = minds[0]
 print(example)
 ```
-Output:
 
-
-the audio column contains several features:
-- path: the path to the audio file (*.wav in this case).
-- array: The decoded audio data, represented as a 1-dimensional NumPy array.
-- sampling_rate. The sampling rate of the audio file (8,000 Hz in this example).
-
-Removing unnecessary features:
-```python
-columns_to_remove = ["lang_id", "english_transcription"]
-minds = minds.remove_columns(columns_to_remove)
-minds
-```
-Output:
-
-
-Visualizing the waveform for the first example:
-```python
-import librosa
-import matplotlib.pyplot as plt
-import librosa.display
-
-array = example["audio"]["array"]
-sampling_rate = example["audio"]["sampling_rate"]
-
-plt.figure().set_figwidth(12)
-librosa.display.waveshow(array, sr=sampling_rate)
-```
-Output:
-
-
+- the audio column contains several features:
+           - **path:** the path to the audio file (*.wav in this case).
+           - **array:** the decoded audio data, represented as a 1-dimensional NumPy array.
+           - **sampling_rate:** the sampling rate of the audio file (8,000 Hz in this example).
 
 # III. Preprocessing an audio dataset
 
@@ -235,99 +128,25 @@ Some general preprocessing steps:
 - Converting audio data to model’s expected input
 
 ### 1. Resampling the audio data
-
-Audios sampling rate is not always the value expected by a model you plan to train, or use for inference. If there’s a discrepancy between the sampling rates, you can resample the audio to the model’s expected sampling rate.
-
+If there’s a discrepancy between the sampling rates of your audios and the model (train or inference), you can resample the audio to the model’s expected sampling rate.
 Most of the available pretrained models have been pretrained on audio datasets at a **sampling rate of 16 kHz.**
-
-🤗 Datasets’ `cast_column` method:
-```python
-from datasets import Audio
-minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
-minds[0]
-```
-You may notice that the array values are now also different. This is because we’ve now got twice the number of amplitude values for every one that we had before.
+**Syntax:** `minds = minds.cast_column("audio", Audio(sampling_rate=16_000))`
 
 ### 2. Filtering the dataset
 You may need to filter the data based on some criteria. One of the common cases involves limiting the audio examples to a certain duration. For instance, we might want to **filter out any examples longer than 20s to prevent out-of-memory errors when training a model.**
-
-🤗 Datasets’ filter method:
-```python
-MAX_DURATION_IN_SECONDS = 20.0
-
-def is_audio_length_in_range(input_length):
-    return input_length < MAX_DURATION_IN_SECONDS
-
-# use librosa to get example's duration from the audio file
-new_column = [librosa.get_duration(path=x) for x in minds["path"]]
-minds = minds.add_column("duration", new_column)
-
-# use 🤗 Datasets' `filter` method to apply the filtering function
-minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])
-
-# remove the temporary helper column
-minds = minds.remove_columns(["duration"])
-minds
-```
-Output:
-
+**Syntax:** `minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])`
 
 ### 3. Pre-processing audio data
+The raw audio data comes as an array of sample values but pre-trained models expect it to be **converted into input features** depending on the model.
+Transformers offer a `feature extractor` class that can convert raw audio data into the input features the model expects.
 
-The raw audio data comes as an array of sample values but pre-trained models expect it to be converted into input features depending on the model.
+**Example of Whisper’s feature extractor operations:**
+           - First **padding/truncating a batch of audio examples** such that all examples have an input length of **30s**.  There is no need for an attention mask.
+           - Second **converting the padded audio arrays to log-mel spectrograms**. 
 
-Transformers offer a feature extractor class that can convert raw audio data into the input features the model expects.
+The model’s feature extractor class takes care of transforming raw audio data to the format that the model expects. However, many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer **model-specific tokenizers to process the text inputs.**
 
-Example of Whisper’s feature extractor:
-           - First, the **Whisper feature extractor pads/truncates a batch of audio examples** such that all examples have an input length of 30s.  There is no need for an attention mask.
-           - The second operation that the Whisper feature extractor performs is **converting the padded audio arrays to log-mel spectrograms**. As you recall, these spectrograms describe how the frequencies of a signal change over time, expressed on the mel scale and measured in decibels (the log part) to make the frequencies and amplitudes more representative of human hearing.
-
-```python
-from transformers import WhisperFeatureExtractor
-
-feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
-
-# function to pre-process a single audio example
-def prepare_dataset(example):
-    audio = example["audio"]
-    features = feature_extractor(
-        audio["array"], sampling_rate=audio["sampling_rate"], padding=True
-    )
-    return features
-
-# apply the data preparation function to all of our training examples
-minds = minds.map(prepare_dataset)
-minds
-```
-Output:
-
-
-As easy as that, we now have log-mel spectrograms as input_features in the dataset.
-
-Let’s visualize it for one of the examples in the minds dataset:
-
-```python
-import numpy as np
-
-example = minds[0]
-input_features = example["input_features"]
-
-plt.figure().set_figwidth(12)
-librosa.display.specshow(
-    np.asarray(input_features[0]),
-    x_axis="time",
-    y_axis="mel",
-    sr=feature_extractor.sampling_rate,
-    hop_length=feature_extractor.hop_length,
-)
-plt.colorbar()
-```
-Output:
-
-
-The model’s feature extractor class takes care of transforming raw audio data to the format that the model expects. However, many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer model-specific tokenizers to process the text inputs.
-
-You can load the feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via a so-called **processor**. To make things even simpler, use AutoProcessor to load a model’s feature extractor and processor from a checkpoint, like this:
+You can load the feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via a so-called **processor**. To make things even simpler, use **AutoProcessor to load a model’s feature extractor and processor from a checkpoint**, like this:
 
 ```python
 from transformers import AutoProcessor
@@ -336,7 +155,7 @@ processor = AutoProcessor.from_pretrained("openai/whisper-small")
 ```
 
 
-# Streaming audio data
+# IV. Streaming audio data
 
 One of the biggest challenges faced with audio datasets is their **sheer size**.
 - So what happens when we want to train on a larger split?
@@ -354,25 +173,14 @@ There is one caveat to streaming mode.
 - When downloading a full dataset without streaming, both the raw data and processed data are saved locally to disk and this allows reusability.
 - With streaming mode, the data is not downloaded to disk. Thus, neither the downloaded nor pre-processed data are cached.
 
-How can you enable streaming mode? Easy!
 ```python
+# How can you enable streaming mode? Easy!
 gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
-```
 
-You can no longer access individual samples using Python indexing. Instead, you have to iterate over the dataset:
-```python
+# You can no longer access individual samples using Python indexing. Instead, you have to iterate over the dataset
 next(iter(gigaspeech["train"]))
-```
-Output:
 
-
-If you’d like to preview several examples from a large dataset, use the take() to get the first n elements. Let’s grab the first two examples in the gigaspeech dataset:
-```python
+# preview several examples from a large dataset, use the take() to get the first n elements
 gigaspeech_head = gigaspeech["train"].take(2)
 list(gigaspeech_head)
 ```
-Output:
-
-
-
-
