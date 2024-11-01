@@ -175,9 +175,10 @@ plt.colorbar()
    - **Mel Spectrogram**: Frequency information adapted for human perception, important for machine learning tasks. 
 
 
+
 # II. Load and explore an audio dataset
 
-We will use the **🤗 Datasets* library to work with audio datasets.
+We will use the **🤗 Datasets** library to work with audio datasets.
 
 Installation:
 ```python
@@ -222,12 +223,11 @@ sampling_rate = example["audio"]["sampling_rate"]
 plt.figure().set_figwidth(12)
 librosa.display.waveshow(array, sr=sampling_rate)
 ```
-
 Output:
 
 
 
-# Preprocessing an audio dataset
+# III. Preprocessing an audio dataset
 
 Some general preprocessing steps:
 - Resampling the audio data
@@ -238,9 +238,9 @@ Some general preprocessing steps:
 
 Audios sampling rate is not always the value expected by a model you plan to train, or use for inference. If there’s a discrepancy between the sampling rates, you can resample the audio to the model’s expected sampling rate.
 
-Most of the available pretrained models have been pretrained on audio datasets at a sampling rate of 16 kHz.
+Most of the available pretrained models have been pretrained on audio datasets at a **sampling rate of 16 kHz.**
 
-🤗 Datasets’ cast_column method:
+🤗 Datasets’ `cast_column` method:
 ```python
 from datasets import Audio
 minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
@@ -249,7 +249,7 @@ minds[0]
 You may notice that the array values are now also different. This is because we’ve now got twice the number of amplitude values for every one that we had before.
 
 ### 2. Filtering the dataset
-You may need to filter the data based on some criteria. One of the common cases involves limiting the audio examples to a certain duration. For instance, we might want to filter out any examples longer than 20s to prevent out-of-memory errors when training a model.
+You may need to filter the data based on some criteria. One of the common cases involves limiting the audio examples to a certain duration. For instance, we might want to **filter out any examples longer than 20s to prevent out-of-memory errors when training a model.**
 
 🤗 Datasets’ filter method:
 ```python
@@ -271,6 +271,7 @@ minds
 ```
 Output:
 
+
 ### 3. Pre-processing audio data
 
 The raw audio data comes as an array of sample values but pre-trained models expect it to be converted into input features depending on the model.
@@ -278,8 +279,8 @@ The raw audio data comes as an array of sample values but pre-trained models exp
 Transformers offer a feature extractor class that can convert raw audio data into the input features the model expects.
 
 Example of Whisper’s feature extractor:
-           - First, the Whisper feature extractor pads/truncates a batch of audio examples such that all examples have an input length of 30s.  There is no need for an attention mask.
-           - The second operation that the Whisper feature extractor performs is converting the padded audio arrays to log-mel spectrograms. As you recall, these spectrograms describe how the frequencies of a signal change over time, expressed on the mel scale and measured in decibels (the log part) to make the frequencies and amplitudes more representative of human hearing.
+           - First, the **Whisper feature extractor pads/truncates a batch of audio examples** such that all examples have an input length of 30s.  There is no need for an attention mask.
+           - The second operation that the Whisper feature extractor performs is **converting the padded audio arrays to log-mel spectrograms**. As you recall, these spectrograms describe how the frequencies of a signal change over time, expressed on the mel scale and measured in decibels (the log part) to make the frequencies and amplitudes more representative of human hearing.
 
 ```python
 from transformers import WhisperFeatureExtractor
@@ -326,7 +327,7 @@ Output:
 
 The model’s feature extractor class takes care of transforming raw audio data to the format that the model expects. However, many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer model-specific tokenizers to process the text inputs.
 
-You can load the feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via a so-called processor. To make things even simpler, use AutoProcessor to load a model’s feature extractor and processor from a checkpoint, like this:
+You can load the feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via a so-called **processor**. To make things even simpler, use AutoProcessor to load a model’s feature extractor and processor from a checkpoint, like this:
 
 ```python
 from transformers import AutoProcessor
@@ -338,12 +339,11 @@ processor = AutoProcessor.from_pretrained("openai/whisper-small")
 # Streaming audio data
 
 One of the biggest challenges faced with audio datasets is their **sheer size**.
+- So what happens when we want to train on a larger split?
+- Do we need to fork out and buy additional storage? 
+- Or is there a way we can train on these datasets with no disk space constraints?
 
-So what happens when we want to train on a larger split?
-Do we need to fork out and buy additional storage? 
-Or is there a way we can train on these datasets with no disk space constraints?
-
-🤗 Datasets comes to the rescue by offering the streaming mode. Streaming allows us to load the data progressively as we iterate over the dataset. Rather than downloading the whole dataset at once, we load the dataset one example at a time. We iterate over the dataset, loading and preparing examples on the fly when they are needed. This way, we only ever load the examples that we’re using, and not the ones that we’re not! Once we’re done with an example sample, we continue iterating over the dataset and load the next one.
+**🤗 Datasets** comes to the rescue by offering the **streaming mode**. Streaming allows us to load the data progressively as we iterate over the dataset. Rather than downloading the whole dataset at once, we load the dataset one example at a time. We iterate over the dataset, loading and preparing examples on the fly when they are needed. This way, we only ever load the examples that we’re using, and not the ones that we’re not! Once we’re done with an example sample, we continue iterating over the dataset and load the next one.
 
 Streaming mode has three primary advantages over downloading the entire dataset at once:
 - Disk space
