@@ -13,12 +13,14 @@ The different audio file formats (.wav, .flac, .mp3) mainly differ in how they *
 
 **Sampling:** process of measuring the value of a continuous signal at fixed time steps.
 The sampled waveform is **discrete**.
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/Signal_Sampling.png)
 
 **Sampling rate** (sampling frequency): number of samples taken in one second in hertz (Hz).
 
 **Nyquist limit** (half the sampling rate): highest frequency that can be captured from the signal.   
 The audible frequencies in human speech are below **8 kHz** and therefore sampling speech at 16 kHz is sufficient.
 On the other hand, sampling audio at too low a sampling rate will result in information loss.
+![]()
 
 **Resampling**: the process of making the sampling rates match.
 
