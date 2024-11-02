@@ -94,16 +94,16 @@ It’s also possible for models to directly output a waveform instead of a spect
 # II. CTC architectures
 
 **CTC or Connectionist Temporal Classification** is a technique that is used with **encoder-only transformer models for ASR**. 
-Examples of such models are Wav2Vec2, HuBERT and M-CTC-T.
+Examples of such models are **Wav2Vec2**, **HuBERT** and **M-CTC-T**.
 
-With a CTC model, we apply an additional linear mapping on the sequence of hidden-states to get class label predictions. 
+With a CTC model, we apply an **additional linear mapping on the sequence of hidden-states** to get class label predictions. 
 The class labels are the characters of the alphabet (a, b, c, …). 
 This way we’re able to predict any word in the target language with a small classification head, as the vocabulary just needs to exist of 26 characters plus a few special tokens.
 
-![]()
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/wav2vec2-ctc.png)
 
-Here’s the rub: In speech, we don’t know the alignment of the audio inputs and text outputs. 
-We know that the order the speech is spoken in is the same as the order that the text is transcribed in (the alignment is so-called monotonic), but we don’t know how the characters in the transcription line up to the audio. 
+**Here’s the rub:** In speech, **we don’t know the alignment** of the audio inputs and text outputs. 
+We know that the order the speech is spoken in is the same as the order that the text is transcribed in (the alignment is so-called **monotonic**), but we don’t know how the characters in the transcription line up to the audio. 
 
 This is where the CTC algorithm comes in.
 
@@ -111,9 +111,9 @@ This is where the CTC algorithm comes in.
 ### 1. Dude, where’s my alignment?
 ASR involves taking audio as input and producing text as output. 
 We have a few choices for how to predict the text:
-- as individual characters
-- as phonemes
-- as word tokens
+- **as individual characters**
+- **as phonemes**
+- **as word tokens**
 
 An ASR model is trained on a dataset consisting of (audio, text) pairs where the text is a human-made transcription of the audio file. Generally the dataset does not include any timing information that says which word or syllable occurs where in the audio file. 
 Since we can’t rely on timing information during training, we don’t have any idea how the input and output sequences should be aligned.
