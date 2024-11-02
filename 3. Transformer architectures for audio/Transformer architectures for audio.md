@@ -115,22 +115,10 @@ We have a few choices for how to predict the text:
 - **as phonemes**
 - **as word tokens**
 
-An ASR model is trained on a dataset consisting of (audio, text) pairs where the text is a human-made transcription of the audio file. Generally the dataset does not include any timing information that says which word or syllable occurs where in the audio file. 
-Since we can’t rely on timing information during training, we don’t have any idea how the input and output sequences should be aligned.
+An ASR model is trained on a dataset consisting of **(audio, text) pairs**. Generally the dataset does not include any timing information that says which word or syllable occurs where in the audio file (no idea of how the input and output sequences should be aligned).    
+**CTC works best with a small vocabulary, so we’ll predict characters.**
 
-Let’s suppose our input is a one-second audio file. 
-In Wav2Vec2, the model first downsamples the audio input using the CNN feature encoder to a shorter sequence of hidden-states, where there is one hidden-state vector for every 20 milliseconds of audio. 
-For one second of audio, we then forward a sequence of 50 hidden-states to the transformer encoder. 
-(The audio segments extracted from the input sequence partially overlap, so even though one hidden-state vector is emitted every 20 ms, each hidden-state actually represent 25 ms of audio.)
-
-
-The transformer encoder predicts one feature representation for each of these hidden-states, meaning we receive a sequence of 50 outputs from the transformer. 
-Each of these outputs has a dimensionality of 768. 
-The output sequence of the transformer encoder in this example therefore has shape (768, 50). 
-As each of these predictions covers 25 ms of time, which is shorter than the duration of a phoneme, it makes sense to predict individual phonemes or characters but not entire words. 
-CTC works best with a small vocabulary, so we’ll predict characters.
-
-![]()
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/cnn-feature-encoder.png)
 
 To make text predictions, we map each of the 768-dimensional encoder outputs to our character labels using a linear layer (the “CTC head”). 
 The model then predicts a (50, 32) tensor containing the logits, where 32 is the number of tokens in the vocabulary. 
@@ -143,18 +131,16 @@ BRIIONSAWWSOMEETHINGCLOSETOPANICONHHISOPPONENT'SSFAACEWHENTHEMANNFINALLLYRREECOG
 ```
 
 If you look closely, it somewhat resembles English but a lot of the characters have been duplicated. 
-That’s because the model needs to output something for every 20 ms of audio in the input sequence, and if a character is spread out over a period longer than 20 ms then it will appear multiple times in the output. 
-There’s no way to avoid this, especially since we don’t know what the timing of the transcript is during training. 
-CTC is a way to filter out these duplicates.
+That’s because the model needs to output something for every 20 ms of audio in the input sequence, and if a character is spread out over a period longer than 20 ms then it will appear multiple times in the output. There’s no way to avoid this, especially since we don’t know what the timing of the transcript is during training.   
+**CTC is a way to filter out these duplicates.**
 
-**Note:** In reality, the predicted sequence also contains a lot of padding tokens for when the model isn’t quite sure what the sound represents, or for the empty space between characters. We removed these padding tokens from the example for clarity. 
-The partial overlap between audio segments is another reason characters get duplicated in the output.
+**Note:** In reality, the predicted sequence also contains a lot of padding tokens for when the model isn’t quite sure what the sound represents, or for the empty space between characters. The partial overlap between audio segments is another reason characters get duplicated in the output.
 
 ### 2. The CTC algorithm
 The key to the CTC algorithm is using a special token, often called the **blank token**. 
 This is just another token that the model will predict and it’s part of the vocabulary. 
 In this example, the blank token is shown as **_**. 
-This special token serves as a hard boundary between groups of characters.
+This special token serves as a **hard boundary between groups of characters.**
 
 The full output from the CTC model might be something like the following:
 ```
@@ -196,14 +182,16 @@ This is a very simple and convenient way to solve the problem of aligning the ou
 
 Adding CTC to a transformer encoder model is easy: the output sequence from the encoder goes into a linear layer that projects the acoustic features to the vocabulary. The model is trained with a special CTC loss.
 
-One downside of CTC is that it may output words that sound correct, but are not spelled correctly. After all, the CTC head only considers individual characters, not complete words. One way to improve the quality of the audio transcriptions is to use an external language model. This language model essentially acts as a spellchecker on top of the CTC output.
+One downside of CTC is that it may output words that sound correct, but are not spelled correctly. After all, the CTC head only considers individual characters, not complete words. One way to improve the quality of the audio transcriptions is to **use an external language model.** This language model essentially acts as a spellchecker on top of the CTC output.
 
 ### What’s the difference between Wav2Vec2, HuBERT, M-CTC-T, …?
-All transformer-based CTC models have a very similar architecture: they use the transformer encoder (but not the decoder) with a CTC head on top. Architecture-wise they are more alike than different.
+All transformer-based CTC models have a very similar architecture: they use the **transformer encoder** (but not the decoder)** with a CTC head on top.** Architecture-wise they are more alike than different.
 
-One difference between Wav2Vec2 and M-CTC-T is that the former works on raw audio waveforms while the latter uses mel spectrograms as input. The models also have been trained for different purposes. M-CTC-T, for example, is trained for multilingual speech recognition, and therefore has a relatively large CTC head that includes Chinese characters in addition to other alphabets.
+One difference between Wav2Vec2 and M-CTC-T is that the former works on raw audio waveforms while the latter uses mel spectrograms as input. The models also have been trained for different purposes. M-CTC-T, for example, is trained for multilingual ASR, and therefore has a relatively large CTC head that includes Chinese characters in addition to other alphabets.
 
-Wav2Vec2 & HuBERT use the exact same architecture but are trained in very different ways. Wav2Vec2 is pre-trained like BERT’s masked language modeling, by predicting speech units for masked parts of the audio. HuBERT takes the BERT inspiration a step further and learns to predict “discrete speech units”, which are analogous to tokens in a text sentence, so that speech can be treated using established NLP techniques.
+Wav2Vec2 & HuBERT use the exact same architecture but are trained in very different ways.
+- **Wav2Vec2 is pre-trained like BERT’s masked language modeling**, by predicting speech units for masked parts of the audio.
+- HuBERT takes the BERT inspiration a step further and learns to **predict “discrete speech units”**, which are analogous to tokens in a text sentence, so that speech can be treated using established NLP techniques.
 
 
 # III. Seq2Seq architectures
@@ -212,44 +200,41 @@ When using **encoder-decoder model**, this is referred to as a sequence-to-seque
 The model maps a sequence of one kind of data to a sequence of another kind of data.
 
 - With encoder-only transformer models, the encoder made a prediction for each element in the input sequence. Therefore, both input and output sequences will always have the same length.
-- With a seq2seq model, there is no such one-to-one correspondence and the input and output sequences can have different lengths. That makes seq2seq models suitable for audio tasks such as speech recognition.
+- With a seq2seq model, there is no such one-to-one correspondence and the input and output sequences can have different lengths. That makes **seq2seq models suitable for audio tasks such as ASR.**
 
 Though the decoder and the encoder architectures are very similar, the decoder performs a different task than the encoder.
+
 
 ### Automatic speech recognition
 
 The architecture of Whisper is as follows:
-
-![]()
-
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/whisper_architecture.svg)
 
 This should look quite familiar. 
-- On the left is the transformer encoder. This takes as input a log-mel spectrogram and encodes that spectrogram to form a sequence of encoder hidden states that extract important features from the spoken speech. This hidden-states tensor represents the input sequence as a whole and effectively encodes the “meaning” of the input speech.
-- The output of the encoder is then passed into the transformer decoder, shown on the right, using a mechanism called **cross-attention**. This is like self-attention but attends over the encoder output. From this point on, the encoder is no longer needed.
-
-
-The decoder predicts a sequence of text tokens in an autoregressive manner, a single token at a time, starting from an initial sequence that just has a “start” token in it (SOT in the case of Whisper). 
+- On the left is the transformer encoder. This takes as **input a log-mel spectrogram and encodes that spectrogram to form a sequence of encoder hidden states** that extract important features from the spoken speech. This hidden-states tensor represents the input sequence as a whole and effectively **encodes the “meaning” of the input speech**.
+- The output of the encoder is then passed into the transformer decoder, shown on the right, using a mechanism called **cross-attention**. This is like self-attention but attends over the encoder output. From this point on, the encoder is no longer needed.  
+The decoder predicts a sequence of text tokens in an **autoregressive manner**, a single token at a time, starting from an initial sequence that just has a “start” token in it (SOT in the case of Whisper). 
 
 At each following timestep, the previous output sequence is fed back into the decoder as the new input sequence. In this manner, the decoder emits one new token at a time, steadily growing the output sequence, until it predicts an “end” token or a maximum number of timesteps is reached.
 
 While the architecture of the decoder is mostly identical to that of the encoder, there are two big differences:
-- 1. the decoder has a cross-attention mechanism that allows it to look at the encoder’s representation of the input sequence
-- 2. the decoder’s attention is causal — the decoder isn’t allowed to look into the future.
+- 1. **the decoder has a cross-attention mechanism** that allows it to look at the encoder’s representation of the input sequence
+- 2. **the decoder’s attention is causal** — the decoder isn’t allowed to look into the future.
 
 
-In this design, the decoder plays the role of a language model, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is a more powerful approach than CTC, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
+In this design, the decoder plays the role of a language model, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is a **more powerful approach than CTC**, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
 
 
-A typical loss function for a seq2seq ASR model is the cross-entropy loss, as the final layer of the model predicts a probability distribution over the possible tokens. This is usually combined with techniques such as beam search to generate the final sequence. The metric for speech recognition is WER or word error rate, which measures how many substitutions, insertions, and deletions are necessary to turn the predicted text into the target text — the fewer, the better the score.
+**A typical loss function for a seq2seq ASR model is the cross-entropy loss**, as the final layer of the model predicts a probability distribution over the possible tokens. This is usually combined with techniques such as **beam search to generate the final sequence.** The metric for ASR is **word error rate (WER)**.
 
 
 ### Text-to-speech
 
-It may not surprise you: A seq2seq model for TTS works essentially the same as described above but with the inputs and outputs switched around! The transformer encoder takes in a sequence of text tokens and extracts a sequence of hidden-states that represent the input text. The transformer decoder applies cross-attention to the encoder output and predicts a spectrogram.
+A seq2seq model for TTS works essentially the same as described above but with the inputs and outputs switched around! The transformer encoder takes in a sequence of text tokens and extracts a sequence of hidden-states that represent the input text. The transformer decoder applies cross-attention to the encoder output and predicts a spectrogram.
 
-With the ASR model, the decoder was kickstarted using a sequence that just has the special “start” token in it. For the TTS model, we can start the decoding with a spectrogram of length one that is all zeros that acts as the “start token”. Given this initial spectrogram and the cross-attentions over the encoder’s hidden-state representations, the decoder then predicts the next timeslice for this spectrogram, steadily growing the spectrogram one timestep at a time.
+With the ASR model, the decoder was kickstarted using a sequence that just has the special “start” token in it. For the TTS model, **we can start the decoding with a spectrogram of length one** that is all zeros that acts as the **“start token”**. Given this initial spectrogram and the cross-attentions over the encoder’s hidden-state representations, the decoder then predicts the next timeslice for this spectrogram, steadily growing the spectrogram one timestep at a time.
 
-![]()
+![](https://github.com/ANYANTUDRE/Audio-Transformers-Hugging-Face/blob/main/img/speecht5_decoding.png)
 
 
 But how does the decoder know when to stop? In the SpeechT5 model this is handled by making the decoder predict a second sequence. This contains the probability that the current timestep is the last one. While generating audio at inference time, if this probability is over a certain threshold (say 0.5), the decoder is indicating that the spectrogram is finished and the generation loop should end.
